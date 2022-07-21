@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/davecgh/go-spew/spew"
 	authWrapper "github.com/manicminer/hamilton-autorest/auth"
 	envWrapper "github.com/manicminer/hamilton-autorest/environments"
 	"github.com/manicminer/hamilton/auth"
@@ -20,6 +21,7 @@ import (
 )
 
 func buildServicePrincipalObjectIDFunc(c *Config) func(ctx context.Context) (*string, error) {
+	log.Printf("[ERROR] OLIVIER_0 buildServicePrincipalObjectIDFunc")
 	return func(ctx context.Context) (*string, error) {
 		if c.UseMicrosoftGraph {
 			objectId, err := objectIdFromMSALTokenClaims(ctx, c)
@@ -42,25 +44,33 @@ func buildServicePrincipalObjectIDFunc(c *Config) func(ctx context.Context) (*st
 }
 
 func claimsFromAutorestAuthorizer(authorizer autorest.Authorizer) (*auth.Claims, error) {
+	log.Printf("[ERROR] OLIVIER_0 claimsFromAutorestAuthorizer")
 	wrapper, err := authWrapper.NewAuthorizerWrapper(authorizer)
 	if err != nil {
+		log.Printf("[ERROR] OLIVIER_0 claimsFromAutorestAuthorizer wrapper error=%v", err)
 		return nil, fmt.Errorf("wrapping autorest.Authorizer: %v", err)
 	}
+	log.Printf("[ERROR] OLIVIER_0 claimsFromAutorestAuthorizer wrapper OK")
 
 	token, err := wrapper.Token()
 	if err != nil {
+		log.Printf("[ERROR] OLIVIER_0 claimsFromAutorestAuthorizer token error=%v", err)
 		return nil, fmt.Errorf("acquiring access token: %v", err)
 	}
+	log.Printf("[ERROR] OLIVIER_0 claimsFromAutorestAuthorizer token OK %s", spew.Sdump(token))
 
 	claims, err := auth.ParseClaims(token)
 	if err != nil {
+		log.Printf("[ERROR] OLIVIER_0 claimsFromAutorestAuthorizer claims error=%v", err)
 		return nil, fmt.Errorf("parsing claims from access token: %v", err)
 	}
+	log.Printf("[ERROR] OLIVIER_0 claimsFromAutorestAuthorizer claims OK %s", spew.Sdump(claims))
 
 	return &claims, nil
 }
 
 func objectIdFromADALTokenClaims(ctx context.Context, c *Config) (*string, error) {
+	log.Printf("[ERROR] OLIVIER_0 objectIdFromADALTokenClaims")
 	env, err := AzureEnvironmentByNameFromEndpoint(ctx, c.MetadataHost, c.Environment)
 	if err != nil {
 		return nil, fmt.Errorf("determining environment: %v", err)
@@ -87,6 +97,7 @@ func objectIdFromADALTokenClaims(ctx context.Context, c *Config) (*string, error
 }
 
 func objectIdFromMSALTokenClaims(ctx context.Context, c *Config) (*string, error) {
+	log.Printf("[ERROR] OLIVIER_0 objectIdFromMSALTokenClaims")
 	env, err := environments.EnvironmentFromString(c.Environment)
 	if err != nil {
 		// failed to find a suitable hamilton environment, so convert the provided autorest environment
@@ -117,6 +128,7 @@ func objectIdFromMSALTokenClaims(ctx context.Context, c *Config) (*string, error
 }
 
 func objectIdFromAadGraph(ctx context.Context, c *Config) (*string, error) {
+	log.Printf("[ERROR] OLIVIER_0 objectIdFromAadGraph")
 	env, err := AzureEnvironmentByNameFromEndpoint(ctx, c.MetadataHost, c.Environment)
 	if err != nil {
 		return nil, fmt.Errorf("determining environment: %v", err)
@@ -153,6 +165,7 @@ func objectIdFromAadGraph(ctx context.Context, c *Config) (*string, error) {
 }
 
 func objectIdFromMsGraph(ctx context.Context, c *Config) (*string, error) {
+	log.Printf("[ERROR] OLIVIER_0 objectIdFromMsGraph")
 	env, err := environments.EnvironmentFromString(c.Environment)
 	if err != nil {
 		// failed to find a suitable hamilton environment, so convert the provided autorest environment
@@ -207,13 +220,16 @@ func objectIdFromMsGraph(ctx context.Context, c *Config) (*string, error) {
 }
 
 func hamiltonRequestLogger(req *http.Request) (*http.Request, error) {
+	log.Printf("[ERROR] OLIVIER_0 hamiltonRequestLogger")
 	if req == nil {
 		return nil, nil
 	}
 
 	if dump, err := httputil.DumpRequestOut(req, true); err == nil {
+		log.Printf("[DEBUG] OLIVIER_0 hamiltonRequestLogger OK")
 		log.Printf("[DEBUG] GoAzureHelpers Request: \n%s\n", dump)
 	} else {
+		log.Printf("[DEBUG] OLIVIER_0 hamiltonRequestLogger KO %v", err)
 		log.Printf("[DEBUG] GoAzureHelpers Request: %s to %s\n", req.Method, req.URL)
 	}
 
@@ -221,14 +237,17 @@ func hamiltonRequestLogger(req *http.Request) (*http.Request, error) {
 }
 
 func hamiltonResponseLogger(req *http.Request, resp *http.Response) (*http.Response, error) {
+	log.Printf("[ERROR] OLIVIER_0 hamiltonResponseLogger")
 	if resp == nil {
 		log.Printf("[DEBUG] GoAzureHelpers Request for %s %s completed with no response", req.Method, req.URL)
 		return nil, nil
 	}
 
 	if dump, err := httputil.DumpResponse(resp, true); err == nil {
+		log.Printf("[DEBUG] OLIVIER_0 hamiltonResponseLogger OK")
 		log.Printf("[DEBUG] GoAzureHelpers Response: \n%s\n", dump)
 	} else {
+		log.Printf("[DEBUG] OLIVIER_0 hamiltonResponseLogger KO %v", err)
 		log.Printf("[DEBUG] GoAzureHelpers Response: %s for %s %s\n", resp.Status, req.Method, req.URL)
 	}
 
